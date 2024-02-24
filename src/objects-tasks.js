@@ -385,32 +385,106 @@ function group(array, keySelector, valueSelector) {
  */
 
 const cssSelectorBuilder = {
-  element(/* value */) {
-    throw new Error('Not implemented');
+  selector: '',
+  element(value) {
+    if (this.elementCount) {
+      throw new Error(
+        'Element, id and pseudo-element should not occur more then one time inside the selector'
+      );
+    }
+    if (
+      this.idCount ||
+      this.pseudoClassCount ||
+      this.pseudoElemCount ||
+      this.classCount ||
+      this.attrCount
+    ) {
+      throw new Error(
+        'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element'
+      );
+    }
+    const builder = Object.create(this);
+    builder.selector += value;
+    builder.elementCount = (this.elementCount || 0) + 1;
+    return builder;
   },
-
-  id(/* value */) {
-    throw new Error('Not implemented');
+  id(value) {
+    if (this.idCount) {
+      throw new Error(
+        'Element, id and pseudo-element should not occur more then one time inside the selector'
+      );
+    }
+    if (
+      this.pseudoClassCount ||
+      this.pseudoElemCount ||
+      this.classCount ||
+      this.attrCount
+    ) {
+      throw new Error(
+        'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element'
+      );
+    }
+    const builder = Object.create(this);
+    builder.selector += `#${value}`;
+    builder.idCount = (this.idCount || 0) + 1;
+    return builder;
   },
-
-  class(/* value */) {
-    throw new Error('Not implemented');
+  class(value) {
+    if (this.pseudoClassCount || this.pseudoElemCount || this.attrCount) {
+      throw new Error(
+        'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element'
+      );
+    }
+    const builder = Object.create(this);
+    builder.selector += `.${value}`;
+    builder.classCount = (this.classCount || 0) + 1;
+    return builder;
   },
-
-  attr(/* value */) {
-    throw new Error('Not implemented');
+  attr(value) {
+    if (this.pseudoClassCount || this.pseudoElemCount) {
+      throw new Error(
+        'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element'
+      );
+    }
+    const builder = Object.create(this);
+    builder.selector += `[${value}]`;
+    builder.attrCount = (this.classCount || 0) + 1;
+    return builder;
   },
-
-  pseudoClass(/* value */) {
-    throw new Error('Not implemented');
+  pseudoClass(value) {
+    if (this.pseudoElemCount) {
+      throw new Error(
+        'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element'
+      );
+    }
+    if (this.pseudoElemCount) {
+      throw new Error(
+        'Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element'
+      );
+    }
+    const builder = Object.create(this);
+    builder.selector += `:${value}`;
+    builder.pseudoClassCount = (this.pseudoClassCount || 0) + 1;
+    return builder;
   },
-
-  pseudoElement(/* value */) {
-    throw new Error('Not implemented');
+  pseudoElement(value) {
+    if (this.pseudoElemCount) {
+      throw new Error(
+        'Element, id and pseudo-element should not occur more then one time inside the selector'
+      );
+    }
+    const builder = Object.create(this);
+    builder.selector += `::${value}`;
+    builder.pseudoElemCount = (this.pseudoElemCount || 0) + 1;
+    return builder;
   },
-
-  combine(/* selector1, combinator, selector2 */) {
-    throw new Error('Not implemented');
+  combine(selector1, combinator, selector2) {
+    const builder = Object.create(this);
+    builder.selector = `${selector1.stringify()} ${combinator} ${selector2.stringify()}`;
+    return builder;
+  },
+  stringify() {
+    return this.selector;
   },
 };
 
